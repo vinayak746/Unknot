@@ -6,7 +6,10 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 dotenv.config();
 
 const app = express();
-app.use(cors());
+const corsOptions = {
+  origin: process.env.FRONTEND_URL, // This will be http://localhost:5173 during dev
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Initialize Gemini
