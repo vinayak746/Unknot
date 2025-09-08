@@ -10,6 +10,8 @@ interface AnswerData {
 
 export default function Questions() {
   const [step, setStep] = useState(0);
+  const [userMbti, setUserMbti] = useState("");
+  const [friendMbti, setFriendMbti] = useState("");
   const [answers, setAnswers] = useState<AnswerData>({
     closeness: "",
     feeling: "",
@@ -31,7 +33,13 @@ export default function Questions() {
     `;
 
     // Navigate to the chat page and pass the starting message in the state
-    navigate("/chat", { state: { initialMessage: startingMessage } });
+    navigate("/chat", {
+      state: {
+        initialMessage: startingMessage,
+        userMbti: userMbti,
+        friendMbti: friendMbti,
+      },
+    });
   };
 
   // This function controls moving between questions

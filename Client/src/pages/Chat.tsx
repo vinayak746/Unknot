@@ -3,6 +3,7 @@
 import { useState, type FormEvent, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
   role: "user" | "assistant";
@@ -105,7 +106,7 @@ const Chat = () => {
                   : "bg-white text-gray-800"
               }`}
             >
-              {message.content}
+              <ReactMarkdown>{message.content}</ReactMarkdown>
             </div>
           </div>
         ))}
