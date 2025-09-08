@@ -15,20 +15,27 @@ const Chat = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // --- CHANGE #1: Add state to store MBTI types ---
+  const [userMbti, setUserMbti] = useState("");
+  const [friendMbti, setFriendMbti] = useState("");
+  // ---------------------------------------------------
+
   const location = useLocation();
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // This effect runs only once when the component loads
   useEffect(() => {
-    const initialMessage = location.state?.initialMessage;
+    const { initialMessage, userMbti, friendMbti } = location.state || {};
+
+    // --- CHANGE #1 (continued): Store the MBTI data when the page loads ---
+    if (userMbti) setUserMbti(userMbti);
+    if (friendMbti) setFriendMbti(friendMbti);
+    // ----------------------------------------------------------------------
+
     if (initialMessage) {
-      // If we got an initial message from the Questions page, start the conversation
       const firstMessage: Message = { role: "user", content: initialMessage };
       setMessages([firstMessage]);
-      // And automatically trigger the first API call
-      fetchAdvice([firstMessage]);
+      fetchAdvice([firstMessage], userMbti, friendMbti); // Pass MBTI to the first call
     } else {
-      // Otherwise, start with a generic greeting
       setMessages([
         {
           role: "assistant",
@@ -38,21 +45,27 @@ const Chat = () => {
     }
   }, [location.state]);
 
-  // This effect scrolls to the bottom of the chat whenever a new message is added
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const fetchAdvice = async (currentMessages: Message[]) => {
+  const fetchAdvice = async (
+    currentMessages: Message[],
+    currentUserMbti?: string,
+    currentFriendMbti?: string
+  ) => {
     setIsLoading(true);
     const backendUrl =
       import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
     try {
+      // --- CHANGE #2: Include the MBTI data in the API request body ---
       const response = await axios.post(`${backendUrl}/api/advice`, {
-        // We now send the entire message history to the backend
         messages: currentMessages,
+        userMbti: currentUserMbti,
+        friendMbti: currentFriendMbti,
       });
+      // -----------------------------------------------------------------
 
       const assistantMessage: Message = {
         role: "assistant",
@@ -63,8 +76,7 @@ const Chat = () => {
       console.error("Error fetching advice:", error);
       const errorMessage: Message = {
         role: "assistant",
-        content:
-          "Sorry, I'm having trouble connecting right now. Please try again in a moment.",
+        content: "Sorry, I'm having trouble connecting right now.",
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -82,15 +94,16 @@ const Chat = () => {
 
     setMessages(newMessages);
     setInput("");
-    fetchAdvice(newMessages);
+    // Pass the stored MBTI data with every subsequent message
+    fetchAdvice(newMessages, userMbti, friendMbti);
   };
 
+  // --- No changes needed in the JSX below this line ---
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       <header className="bg-purple-600 text-white p-4 text-center shadow-md">
         <h1 className="text-xl font-semibold">Unknot Counselor</h1>
       </header>
-
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
         {messages.map((message, index) => (
           <div
@@ -119,7 +132,6 @@ const Chat = () => {
         )}
         <div ref={chatEndRef} />
       </div>
-
       <div className="p-4 bg-white border-t border-gray-200">
         <form
           onSubmit={handleSendMessage}

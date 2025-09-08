@@ -21,7 +21,7 @@ const groq = new Groq({
 app.post("/api/advice", async (req: Request, res: Response) => {
   // 1. We now expect a 'messages' array from the frontend
   const { messages, userMbti, friendMbti } = req.body;
-
+  console.log("full request body recieved by the server", req.body);
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: "Messages array is required." });
   }
