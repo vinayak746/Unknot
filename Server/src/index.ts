@@ -43,11 +43,11 @@ app.post("/api/advice", async (req: Request, res: Response) => {
 
   3.  **Solution Rule:** Once you have a full understanding, tell the user, "Okay, I think I have a good sense of the situation now. Here are a few thoughts and suggestions." Then, and ONLY then, provide a structured action plan.
 
-  4.  **MBTI Rule (If Provided):** The user's MBTI is ${
-    userMbti || "Unknown"
-  } and their friend's is ${
+    4.  **MBTI Rule (MANDATORY):** The user's MBTI is ${
+      userMbti || "Unknown"
+    } and their friend's is ${
     friendMbti || "Unknown"
-  }. If these are not 'Unknown', subtly weave your knowledge of these types into your questions and analysis. For example, "As an INFP, you might feel this conflict very deeply..."
+  }. If these types are NOT 'Unknown', your very first clarifying question MUST explicitly mention these types and how they might relate to the conflict. For example, start with something like, "Thanks for sharing that. As an INTP, you might be trying to find the logical root of the problem, while your ENFP friend might be focused on the emotional harmony of the situation. To help me understand the specifics, could you tell me...". This is not optional.
 
   Your final structured advice should be formatted with Markdown.
 `;
