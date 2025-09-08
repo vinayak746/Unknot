@@ -14,27 +14,33 @@ const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  // --- CHANGE #1: Add state to store MBTI types ---
   const [userMbti, setUserMbti] = useState("");
   const [friendMbti, setFriendMbti] = useState("");
-  // ---------------------------------------------------
 
   const location = useLocation();
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // This effect runs only once when the component loads
   useEffect(() => {
-    const { initialMessage, userMbti, friendMbti } = location.state || {};
+    // Gracefully handle the state from the previous page
+    const {
+      initialMessage,
+      userMbti: newUserMbti,
+      friendMbti: newFriendMbti,
+    } = location.state || {};
 
-    // --- CHANGE #1 (continued): Store the MBTI data when the page loads ---
-    if (userMbti) setUserMbti(userMbti);
-    if (friendMbti) setFriendMbti(friendMbti);
-    // ----------------------------------------------------------------------
+    // --- THIS IS THE FIX ---
+    // Always set the state. If the new value from location.state is undefined or null,
+    // it will default to an empty string. This explicitly clears out old values.
+    setUserMbti(newUserMbti || "");
+    setFriendMbti(newFriendMbti || "");
+    // ----------------------
 
     if (initialMessage) {
       const firstMessage: Message = { role: "user", content: initialMessage };
       setMessages([firstMessage]);
-      fetchAdvice([firstMessage], userMbti, friendMbti); // Pass MBTI to the first call
+      // Pass the new, cleaned values to the first API call
+      fetchAdvice([firstMessage], newUserMbti, newFriendMbti);
     } else {
       setMessages([
         {
@@ -43,8 +49,9 @@ const Chat = () => {
         },
       ]);
     }
-  }, [location.state]);
+  }, [location.state]); // This effect re-runs whenever we navigate to this page with new state
 
+  // This effect scrolls to the bottom of the chat whenever a new message is added
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -59,13 +66,11 @@ const Chat = () => {
       import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
     try {
-      // --- CHANGE #2: Include the MBTI data in the API request body ---
       const response = await axios.post(`${backendUrl}/api/advice`, {
         messages: currentMessages,
         userMbti: currentUserMbti,
         friendMbti: currentFriendMbti,
       });
-      // -----------------------------------------------------------------
 
       const assistantMessage: Message = {
         role: "assistant",
@@ -94,11 +99,10 @@ const Chat = () => {
 
     setMessages(newMessages);
     setInput("");
-    // Pass the stored MBTI data with every subsequent message
     fetchAdvice(newMessages, userMbti, friendMbti);
   };
 
-  // --- No changes needed in the JSX below this line ---
+  // --- No changes needed in the JSX below ---
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       <header className="bg-purple-600 text-white p-4 text-center shadow-md">
